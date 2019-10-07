@@ -1,5 +1,7 @@
 ---
 title: "Lab 17: KNN Classification, Cross-validation, Decision boundary plots"
+author: "Amelia and Remy"
+date: "Oct 7"
 output:
   pdf_document:
     keep_tex: true
@@ -60,7 +62,8 @@ crossval_val_fold_inds <- caret::createFolds(
 Your goal is to understand the data well enough that you can identify two features (two of the measured attributes) that would be useful for classifying glass in part 2.  Ideally, each feature you choose will individually have something to say about glass type (for example, maybe the distribution of values for the feature is different for the different glass types), and there will not be a strong relationship between the two features you choose (so they carry different information about glass type and you don't just have basically the same information from your two features).  Don't spend a huge amount of time on this though.  A pairs plot could be good enough.
 
 ```{r}
-
+library(GGally)
+ggpairs(glass)
 ```
 
 I will use Na and Al.
@@ -72,8 +75,8 @@ To save you some time retyping all my code from the handout, I'm pasting in the 
 ```{r}
 # "train" the KNN model
 knn_fit <- train(
-  form = party ~ age + popul,
-  data = train_nes96,
+  form = type~Na + Al,
+  data = glass,
   method = "knn",
   preProcess = "scale",
   trControl = trainControl(method = "none"),
@@ -84,8 +87,9 @@ knn_fit <- train(
 # it's not a test data set in the sense that we don't have observations of party to go with these points,
 # but we will treat it as a "test set" in the sense that we will obtain predictions at these points
 test_grid <- expand.grid(
-  age = seq(from = 19, to = 91, length = 201),
-  popul = seq(from = 19, to = 7300, length = 201)
+  type = seq(from = 19, to = 91, length = 201),
+  Na = seq(from = 10.73, to = 17.38, length = 201), 
+  Al = seq(from = 19, to = 7300, length = 201)
 )
 head(test_grid)
 
