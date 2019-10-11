@@ -75,12 +75,13 @@ I will use Na and Al.
 To save you some time retyping all my code from the handout, I'm pasting in the code I used for the party affiliation example below.  You will need to make the appropriate changes to tailor the code to the data set you're working with in this lab.
 
 ```{r}
-k <- c(1, 10, 50, 100, 150)
+k <- c(1, 5, 10, 15, 50, 100, 150)
+background <- vector("list", length(k))
 
 for (i in 1:length(k)) {
   # "train" the KNN model
-  knn_fit <- train(
-    form = type~ Na + Al,
+  knn_fit <- caret::train(
+    form = type ~ Na + Al,
     data = train_glass,
     method = "knn",
     preProcess = "scale",
@@ -92,9 +93,8 @@ for (i in 1:length(k)) {
   # it's not a test data set in the sense that we don't have observations of party to go with these points,
   # but we will treat it as a "test set" in the sense that we will obtain predictions at these points
   test_grid <- expand.grid(
-    type = seq(from = 19, to = 91, length = 201),
     Na = seq(from = 10.73, to = 17.38, length = 201), 
-    Al = seq(from = 19, to = 7300, length = 201)
+    Al = seq(from = 0.29, to = 3.50, length = 201)
   )
   head(test_grid)
   
@@ -106,17 +106,73 @@ for (i in 1:length(k)) {
     mutate(
       est_type = y_hats
     )
-  
-  # make the plot.  geom_raster does the shading in the background, alpha = 0.2 makes it transparent
-  title <- paste0("KNN, k = ", k[i])
-  ggplot() +
-    geom_raster(data = background_knn,
-      mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
-    geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
-    scale_color_manual("Type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
-    scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
-    ggtitle(title)
+  background[[i]] <- background_knn
 }
+  
+# make the plot.  geom_raster does the shading in the background, alpha = 0.2 makes it transparent
+title <- paste0("KNN, k = ", 1)
+ggplot() +
+  geom_raster(data = background[[1]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+title <- paste0("KNN, k = ", 5)
+ggplot() +
+  geom_raster(data = background[[2]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+title <- paste0("KNN, k = ", 10)
+ggplot() +
+  geom_raster(data = background[[3]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+title <- paste0("KNN, k = ", 15)
+ggplot() +
+  geom_raster(data = background[[4]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+title <- paste0("KNN, k = ", 50)
+ggplot() +
+  geom_raster(data = background[[5]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+title <- paste0("KNN, k = ", 100)
+ggplot() +
+  geom_raster(data = background[[6]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+title <- paste0("KNN, k = ", 150)
+ggplot() +
+  geom_raster(data = background[[7]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
 
 ```
 
