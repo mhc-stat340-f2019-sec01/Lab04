@@ -1,5 +1,7 @@
 ---
-title: "Lab 17: KNN Classification, Cross-validation, Decision boundary plots"
+title: "Lab 4: KNN Classification, Cross-validation, Decision boundary plots"
+author: "Amelia and Remy"
+date: "Oct 7"
 output:
   pdf_document:
     keep_tex: true
@@ -60,8 +62,11 @@ crossval_val_fold_inds <- caret::createFolds(
 Your goal is to understand the data well enough that you can identify two features (two of the measured attributes) that would be useful for classifying glass in part 2.  Ideally, each feature you choose will individually have something to say about glass type (for example, maybe the distribution of values for the feature is different for the different glass types), and there will not be a strong relationship between the two features you choose (so they carry different information about glass type and you don't just have basically the same information from your two features).  Don't spend a huge amount of time on this though.  A pairs plot could be good enough.
 
 ```{r}
-
+library(GGally)
+ggpairs(glass)
 ```
+
+Based on the plots, Na and Al are features whose distribution of values is different for different glass types and there is not a strong relationship between Na and Al. 
 
 I will use Na and Al.
 
@@ -70,42 +75,105 @@ I will use Na and Al.
 To save you some time retyping all my code from the handout, I'm pasting in the code I used for the party affiliation example below.  You will need to make the appropriate changes to tailor the code to the data set you're working with in this lab.
 
 ```{r}
-# "train" the KNN model
-knn_fit <- train(
-  form = party ~ age + popul,
-  data = train_nes96,
-  method = "knn",
-  preProcess = "scale",
-  trControl = trainControl(method = "none"),
-  tuneGrid = data.frame(k = 5)
-)
+k <- c(1, 5, 10, 15, 50, 100, 150)
+background <- vector("list", length(k))
 
-# a grid of values for age and popul at which to get the estimated class.
-# it's not a test data set in the sense that we don't have observations of party to go with these points,
-# but we will treat it as a "test set" in the sense that we will obtain predictions at these points
-test_grid <- expand.grid(
-  age = seq(from = 19, to = 91, length = 201),
-  popul = seq(from = 19, to = 7300, length = 201)
-)
-head(test_grid)
-
-# use predict to find the estimated most likely class at each point in our grid
-y_hats <- predict(knn_fit, newdata = test_grid, type = "raw")
-
-# add the estimated types into the test_grid data frame
-background_knn <- test_grid %>%
-  mutate(
-    est_party = y_hats
+for (i in 1:length(k)) {
+  # "train" the KNN model
+  knn_fit <- caret::train(
+    form = type ~ Na + Al,
+    data = train_glass,
+    method = "knn",
+    preProcess = "scale",
+    trControl = trainControl(method = "none"),
+    tuneGrid = data.frame(k = k[i])
   )
-
+  
+  # a grid of values for age and popul at which to get the estimated class.
+  # it's not a test data set in the sense that we don't have observations of party to go with these points,
+  # but we will treat it as a "test set" in the sense that we will obtain predictions at these points
+  test_grid <- expand.grid(
+    Na = seq(from = 10.73, to = 17.38, length = 201), 
+    Al = seq(from = 0.29, to = 3.50, length = 201)
+  )
+  head(test_grid)
+  
+  # use predict to find the estimated most likely class at each point in our grid
+  y_hats <- predict(knn_fit, newdata = test_grid, type = "raw")
+  
+  # add the estimated types into the test_grid data frame
+  background_knn <- test_grid %>%
+    mutate(
+      est_type = y_hats
+    )
+  background[[i]] <- background_knn
+}
+  
 # make the plot.  geom_raster does the shading in the background, alpha = 0.2 makes it transparent
+title <- paste0("KNN, k = ", 1)
 ggplot() +
-  geom_raster(data = background_knn,
-    mapping = aes(x = age, y = popul, fill = est_party), alpha = 0.2) +
-  geom_point(data = train_nes96, mapping = aes(x = age, y = popul, color = party)) +
-  scale_color_manual("party", values = c("orange", "cornflowerblue", "mediumblue")) +
-  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue")) +
-  ggtitle("KNN, k = 5")
+  geom_raster(data = background[[1]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+title <- paste0("KNN, k = ", 5)
+ggplot() +
+  geom_raster(data = background[[2]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+title <- paste0("KNN, k = ", 10)
+ggplot() +
+  geom_raster(data = background[[3]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+title <- paste0("KNN, k = ", 15)
+ggplot() +
+  geom_raster(data = background[[4]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+title <- paste0("KNN, k = ", 50)
+ggplot() +
+  geom_raster(data = background[[5]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+title <- paste0("KNN, k = ", 100)
+ggplot() +
+  geom_raster(data = background[[6]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+title <- paste0("KNN, k = ", 150)
+ggplot() +
+  geom_raster(data = background[[7]],
+    mapping = aes(x = Na, y = Al, fill = est_type), alpha = 0.2) +
+  geom_point(data = train_glass, mapping = aes(x = Na, y = Al, color = type)) +
+  scale_color_manual("type", values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  scale_fill_manual(values = c("orange", "cornflowerblue", "mediumblue", "red", "green", "yellow")) +
+  ggtitle(title)
+
+
 ```
 
 #### 3. Use cross-validation to evaluate the classification performance of a KNN classifier using all 9 features for a few values of k.
@@ -123,11 +191,76 @@ Your code should do the following things:
 You will need to do this for each value of $k$ you investigate.  For today, you can organize this in any way that makes sense to you.  Options include using two nested for loops where one iterates over the values of $k$ you're looking at and the other iterates over cross-validation folds; manually doing steps b, c, and d for each model within a single for loop; or repeating your whole block of code multiple times, once for each value of $k$.
 
 ```{r}
+# mean classification error
+MCE <- data.frame(
+  val_fold = 1:10,
+  MCE = NA
+)
 
+# different values for k neighbors
+k_vector <- c(1, 5, 10, 15, 50, 100, 150)
+
+# result of cross validation for each k 
+results <- data.frame(
+  k_neighbor = k_vector,
+  MCE_diff_k = NA
+)
+
+for (i in 1:length(k_vector)) {
+  k <- k_vector[i]
+  # cross - validation for each k
+  for (j in 1:10) {
+    crossval_val_glass <- train_glass %>% slice(crossval_val_fold_inds[[j]])
+    crossval_train_glass <- train_glass %>% slice(-crossval_val_fold_inds[[j]])
+    
+    # "train" the KNN model
+    knn_fit <- train(
+      form = type ~ RI + Na + Mg + Al + Si + K + Ca + Ba + Fe,
+      data = crossval_train_glass, 
+      method = "knn", 
+      preProcess = "scale",
+      trControl = trainControl(method = "none"),
+      tuneGrid = data.frame(k = 10)
+    )
+    
+    y_hats <- predict(knn_fit, newdata = crossval_val_glass, type = "raw")
+    head(y_hats)
+    
+    MCE$MCE[j] <- mean(y_hats != crossval_val_glass$type)
+  }
+  results$MCE_diff_k[i] <- mean(MCE$MCE)
+}
+results
 ```
 
 #### 4. Using your selected value of $k$ from cross-validation, refit your KNN model to the full training set and get the test set error rate.  How does your performance compare to what you'd get if you just predicted the most common class in the training set?
 
+* The value 15 of k neighbors gives the smallest misspecified classification error from cross-validation. 
 ```{r}
+# "train" the KNN model
+knn_fit <- train(
+  form = type ~ RI + Na + Mg + Al + Si + K + Ca + Ba + Fe,
+  data = train_glass, 
+  method = "knn", 
+  preProcess = "scale",
+  trControl = trainControl(method = "none"),
+  tuneGrid = data.frame(k = 15)
+)
 
+# to get estimate type probabilities, specify type = "prob" in the predict function
+f_hats <- predict(knn_fit, newdata = test_glass, type = "prob")
+head(f_hats)
+
+# to get the most likely type
+y_hats <- predict(knn_fit, newdata = test_glass, type = "raw")
+head(y_hats)
+
+# classficiation error rate
+mean(y_hats != test_glass$type)
+
+# compare to predicting the most common type in the training set
+train_glass %>% count(type)
+mean("WinNF" != test_glass$type)
 ```
+
+* The KNN performance with the classification error rate 0.344 is so much better what I'd get if just predicted the most common type (WinNF) in the training set with the classification error rate 0.639. 
